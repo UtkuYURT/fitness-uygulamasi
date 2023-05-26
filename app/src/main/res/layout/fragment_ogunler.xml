@@ -20,18 +20,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Spinner
-        android:id="@+id/spinnerOgunSecimi"
-        android:layout_width="match_parent"
-        android:layout_height="45dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginEnd="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextTarih" />
-
     <EditText
         android:id="@+id/editTextTarih"
         android:layout_width="0dp"
@@ -50,6 +38,18 @@
         app:layout_constraintTop_toBottomOf="@+id/textView14" />
 
     <Spinner
+        android:id="@+id/spinnerOgunSecimi"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextTarih" />
+
+    <Spinner
         android:id="@+id/spinnerYemekSecim"
         android:layout_width="match_parent"
         android:layout_height="45dp"
@@ -58,7 +58,7 @@
         android:layout_marginEnd="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/spinnerOgunSecimi" />
+        app:layout_constraintTop_toBottomOf="@id/spinnerOgunSecimi" />
 
     <Button
         android:id="@+id/buttonYemek"
@@ -83,7 +83,7 @@
         android:layout_marginTop="40dp"
         android:layout_marginEnd="32dp"
         android:background="@drawable/shape_button"
-        android:text="Kalori Hesapla"
+        android:text="KALORİ HESAPLA"
         android:textColor="@color/white"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -93,11 +93,12 @@
     <TextView
         android:id="@+id/textViewCalBilgi"
         android:layout_width="0dp"
-        android:layout_height="150dp"
+        android:layout_height="200dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="40dp"
         android:layout_marginEnd="16dp"
         android:padding="8dp"
+        android:text="Seçilen tarih için kalori hesabı yapılır."
         android:textColor="@color/black"
         android:textSize="20sp"
         android:textStyle="bold"

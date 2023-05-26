@@ -5,8 +5,8 @@ import java.util.ArrayList;
 public class FoodList {
     private ArrayList<Food> foodList = new ArrayList<>();
 
-    public FoodList(ArrayList<Food> wordList) {
-        this.foodList = wordList;
+    public FoodList(ArrayList<Food> foodList) {
+        this.foodList = foodList;
     }
 
     public FoodList() {

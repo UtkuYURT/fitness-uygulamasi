@@ -1,11 +1,14 @@
 package com.example.fitness;
 
+import static android.content.ContentValues.TAG;
+
 import android.app.DatePickerDialog;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,11 +22,15 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import org.checkerframework.checker.units.qual.A;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.EventListener;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -34,6 +41,7 @@ public class FragmentOgunler extends Fragment {
     private FirebaseFirestore mFirestore=FirebaseFirestore.getInstance();
     private FirebaseAuth mAuth;
     private String selectedMeal, selectedFood, selectedDate;
+    private int kahvalti = 0, ogle = 0, aksam = 0;
     private SimpleDateFormat dateFormatter;
 
     @Override
@@ -42,37 +50,100 @@ public class FragmentOgunler extends Fragment {
 
         dateFormatter = new SimpleDateFormat("dd/MM/yyyy", Locale.US);
 
-        meal();
-        food();
         foods();
+        kcalCalculator();
 
         return binding.getRoot();
     }
 
-    public void meal(){
-        ArrayList<String> ogun = new ArrayList<>();
-        ogun.add("Seçiniz");
-        ogun.add("Kahvaltı");
-        ogun.add("Öğle Yemeği");
-        ogun.add("Akşam Yemeği");
-        ArrayAdapter<String> arrayAdapter;
-        arrayAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, ogun);
-        binding.spinnerOgunSecimi.setAdapter(arrayAdapter);
+    public String food(){
+        ArrayList<String> meal = new ArrayList<>();
+        meal.add("Seçiniz");
+        meal.add("Kahvaltı");
+        meal.add("Öğle Yemeği");
+        meal.add("Akşam Yemeği");
+        ArrayAdapter<String> arrayMealAdapter;
+        arrayMealAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, meal);
+        binding.spinnerOgunSecimi.setAdapter(arrayMealAdapter);
+
+        binding.spinnerOgunSecimi.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedMeal = parent.getItemAtPosition(position).toString();
+                if (selectedMeal.equals("Kahvaltı")){
+                    ArrayList<String> food = new ArrayList<>();
+                    food.add("Seçiniz");
+                    food.add("Kaşar Peyniri: kcal, 404, 100 g");
+                    food.add("Krem Peynir: kcal, 349, 100 g");
+                    food.add("Haşlanmış Yumurta:kcal, 155, 100 g");
+                    food.add("Patates Kızartması: kcal, 280, 100 g");
+                    food.add("Beyaz Peynir: kcal, 289, 100 g");
+                    food.add("Beyaz Ekmek: kcal, 69, 1 dilim");
+                    food.add("Çavdar Ekmeği: kcal, 60, 1 dilim");
+                    food.add("Kepek Ekmeği: kcal, 53, 1 dilim");
+                    ArrayAdapter<String> arrayFoodAdapter;
+                    arrayFoodAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, food);
+                    binding.spinnerYemekSecim.setAdapter(arrayFoodAdapter);
+                } else if(selectedMeal.equals("Öğle Yemeği") || selectedMeal.equals("Akşam Yemeği")){
+                    ArrayList<String> food = new ArrayList<>();
+                    food.add("Seçiniz");
+                    food.add("Kuru Fasulye: kcal, 94, 100 g");
+                    food.add("Havuçlu Bezelye: kcal, 48, 100 g");
+                    food.add("Humus: kcal, 177, 100 g");
+                    food.add("Pişmiş Enginar: kcal, 53, 100 g");
+                    food.add("Hünkar Beğendi: kcal, 174, 100 g");
+                    food.add("Kıymalı Pide: kcal, 186, 100 g");
+                    food.add("Patates Püresi: kcal, 83, 100 g");
+                    food.add("Pişmiş Kereviz: kcal, 26, 100 g");
+                    food.add("Adana Kebap: kcal, 240, 100 g");
+                    food.add("Bulgur Pilavı: kcal, 215, 100 g");
+                    food.add("Sucuklu Kaşarlı Pide: kcal, 305, 100 g");
+                    food.add("Lazanya: kcal, 132, 100 g");
+                    food.add("Tereyağlı Pirinç Pilavı: kcal, 185, 100 g");
+                    food.add("Kuzu Tandır: kcal, 150, 100 g");
+                    food.add("Kıymalı Makarna: kcal, 130, 100 g");
+                    food.add("Karışık Pizza: kcal, 185, 100 g");
+                    food.add("Zeytinyağlı Yaprak Sarma: kcal, 185, 100 g");
+                    food.add("Peynirli Makarna: kcal, 140, 100 g");
+                    food.add("Tavuklu Salata: kcal, 48, 100 g");
+                    food.add("Kıymalı Dolma: kcal, 80, 100 g");
+                    food.add("Zeytinyağlı Taze Fasulye: kcal, 50, 100 g");
+                    food.add("Fırında Tavuk: kcal, 138, 100 g");
+                    food.add("Karnıyarık: kcal, 134, 100 g");
+                    food.add("Beyaz Peynir: kcal, 289, 100 g");
+                    food.add("Beyaz Ekmek: kcal, 69, 1 dilim");
+                    food.add("Çavdar Ekmeği: kcal, 60, 1 dilim");
+                    food.add("Kepek Ekmeği: kcal, 53, 1 dilim");
+                    food.add("Zeytinyağlı Dolma: kcal, 175, 100 g");
+                    food.add("Çıkolatalı Pasta: kcal, 431, 1 dilim");
+                    food.add("Bisküvi: kcal, 418, 100 gr");
+                    food.add("Dondurma: kcal, 193, 3 top");
+                    food.add("Kola: kcal, 59, 100 ml");
+                    food.add("Meyveli Soda: kcal, 46, 100 ml");
+                    food.add("Soğuk Çay: kcal, 30, 100 ml");
+                    food.add("Şekersiz Çay: kcal, 3, 100 ml");
+                    food.add("Şekersiz Sade Kahve: kcal, 9, 100 ml");
+                    ArrayAdapter<String> arrayFoodAdapter;
+                    arrayFoodAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, food);
+                    binding.spinnerYemekSecim.setAdapter(arrayFoodAdapter);
+                } else {
+                    ArrayList<String> food = new ArrayList<>();
+                    food.add("Lütfen İlk Önce Öğün Seçiniz");
+                    ArrayAdapter<String> arrayFoodAdapter;
+                    arrayFoodAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, food);
+                    binding.spinnerYemekSecim.setAdapter(arrayFoodAdapter);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                Toast.makeText(getActivity(), "Öğün Seçiniz", Toast.LENGTH_SHORT).show();
+            }
+        });
+        return selectedMeal;
     }
 
-    public void food(){
-        ArrayList<String> food = new ArrayList<>();
-        food.add("Seçiniz");
-        food.add("Yumurta");
-        food.add("Tavuk Pilav");
-        food.add("Peynir");
-        ArrayAdapter<String> arrayAdapter;
-        arrayAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, food);
-        binding.spinnerYemekSecim.setAdapter(arrayAdapter);
-    }
-
-    public void foods(){
-        ArrayList<Food> foodListGlobal = new ArrayList<>();
+    public void foods() {
         mAuth = FirebaseAuth.getInstance();
 
         binding.editTextTarih.setOnClickListener(new View.OnClickListener() {
@@ -92,18 +163,6 @@ public class FragmentOgunler extends Fragment {
             }
         });
 
-        binding.spinnerOgunSecimi.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                selectedMeal = parent.getItemAtPosition(position).toString();
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                Toast.makeText(getActivity(), "Seçilemedi meal", Toast.LENGTH_SHORT).show();
-            }
-        });
-
         binding.spinnerYemekSecim.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -112,44 +171,135 @@ public class FragmentOgunler extends Fragment {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                Toast.makeText(getActivity(), "Seçilemedi food", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), "Yemek Seçilemedi", Toast.LENGTH_SHORT).show();
             }
         });
 
+        selectedMeal = food();
+
         binding.buttonYemek.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                mFirestore.collection("Kullanıcılar").document(mAuth.getUid())
-                        .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            public void onClick(View view) {
+
+                mFirestore.collection("Kullanıcılar").document(mAuth.getUid()).
+                        get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()){
+                        if (task.isSuccessful()) {
                             DocumentSnapshot documentSnapshot = task.getResult();
-                            List<Map<String, Object>> foodList = (List<Map<String, Object>>) documentSnapshot.get("foodList");
+                            List<Map<String, Object>> foodlist = (List<Map<String, Object>>) documentSnapshot.get("foodList");
                             ArrayList<Food> foodList1 = new ArrayList<>();
-                            if (foodList != null){
-                                for (Map<String, Object> foodData : foodList) {
-                                    Food food = new Food((String) foodData.get("Date"), (String) foodData.get("Meal"), (String) foodData.get("Food"));
+                            if (foodlist != null) {
+                                for (Map<String, Object> foodData : foodlist) {
+                                    Food food = new Food((String) foodData.get("Date"), (String) foodData.get("Meal"),(String) foodData.get("Food"));
                                     foodList1.add(food);
                                 }
                             }
                             foodList1.add(new Food(selectedDate, selectedMeal, selectedFood));
-                            foodListGlobal.addAll(foodList1);
                             mFirestore.collection("Kullanıcılar").document(mAuth.getUid()).
-                                    set(new FoodList(foodListGlobal)).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    update("foodList", FieldValue.arrayUnion(new Food(selectedDate, selectedMeal, selectedFood))).
+                                    addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
-                                    if (task.isSuccessful()){
+                                    if (task.isSuccessful()) {
                                         Toast.makeText(getActivity(), "Eklendi", Toast.LENGTH_SHORT).show();
                                     }
                                 }
                             });
                         } else {
-                            Toast.makeText(getActivity(), "Document Bulunamadı", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getActivity(), "Döküman bulunamadı", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
             }
         });
     }
+
+    public void kcalCalculator() {
+        mAuth = FirebaseAuth.getInstance();
+        String userId = mAuth.getUid();
+        ArrayList<Integer> kahvalti_kcal = new ArrayList<>();
+        ArrayList<Integer> ogle_kcal = new ArrayList<>();
+        ArrayList<Integer> aksam_kcal = new ArrayList<>();
+
+        binding.buttonCalHesabi.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                kahvalti=0;
+                ogle=0;
+                aksam=0;
+                selectedDate = binding.editTextTarih.getText().toString();
+                mFirestore.collection("Kullanıcılar").document(userId).
+                        get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                if (task.isSuccessful()) {
+                                    DocumentSnapshot documentSnapshot = task.getResult();
+                                    List<Map<String, Object>> foodList = (List<Map<String, Object>>) documentSnapshot.get("foodList");
+
+                                    if (foodList != null) {
+                                        StringBuilder stringBuilder = new StringBuilder();
+
+                                        for (Map<String, Object> food : foodList) {
+                                            String date = (String) food.get("date");
+                                            if (date.equals(selectedDate)){
+                                                String mealName = (String) food.get("meal");
+                                                if (mealName.equals("Kahvaltı")){
+                                                    String foodName = (String) food.get("food");
+                                                    stringBuilder.append(foodName);
+
+                                                    String[] foodArray = foodName.split(", ");
+                                                    String numericValue = foodArray[1];
+                                                    int cal = Integer.parseInt(numericValue);
+                                                    kahvalti_kcal.clear();
+                                                    kahvalti_kcal.add(cal);
+                                                    for (int i = 0; i < kahvalti_kcal.size(); i++) {
+                                                        kahvalti += kahvalti_kcal.get(i);
+                                                    }
+                                                } else if (mealName.equals("Öğle Yemeği")){
+                                                    String foodName = (String) food.get("food");
+                                                    stringBuilder.append(foodName);
+
+                                                    String[] foodArray = foodName.split(", ");
+                                                    String numericValue = foodArray[1];
+                                                    int cal = Integer.parseInt(numericValue);
+                                                    ogle_kcal.clear();
+                                                    ogle_kcal.add(cal);
+                                                    for (int i = 0; i < ogle_kcal.size(); i++) {
+                                                        ogle += ogle_kcal.get(i);
+                                                    }
+                                                } else if (mealName.equals("Akşam Yemeği")) {
+                                                    String foodName = (String) food.get("food");
+                                                    stringBuilder.append(foodName);
+
+                                                    String[] foodArray = foodName.split(", ");
+                                                    String numericValue = foodArray[1];
+                                                    int cal = Integer.parseInt(numericValue);
+                                                    aksam_kcal.clear();
+                                                    aksam_kcal.add(cal);
+                                                    for (int i = 0; i < aksam_kcal.size(); i++) {
+                                                        aksam += aksam_kcal.get(i);
+                                                    }
+                                                }
+                                            } else {
+                                                binding.textViewCalBilgi.setText("Seçtiğiniz tarih için yemek bilgisi yok.");
+                                            }
+                                        }
+
+                                        binding.textViewCalBilgi.setText(
+                                                "Kahvaltıda yedikleriniz toplam "+kahvalti+" kaloridir.\n" +
+                                                        "Öğle yemeğinde yedikleriniz toplam "+ogle+" kaloridir. \n"+
+                                                        "Akşam yemeğinde yedikleriniz toplam "+aksam+" kaloridir.");
+                                    } else {
+                                        binding.textViewCalBilgi.setText("Hiç yemek eklenmemiş");
+                                    }
+                                } else {
+                                    Log.d(TAG, "Firebase'den veriler getirilemedi.", task.getException());
+                                }
+                            }
+                        });
+            }
+        });
+    }
+
 }
