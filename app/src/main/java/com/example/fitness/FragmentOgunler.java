@@ -19,18 +19,25 @@ import android.widget.Toast;
 
 import com.example.fitness.databinding.FragmentOgunlerBinding;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
 import org.checkerframework.checker.units.qual.A;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.EventListener;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -144,8 +151,6 @@ public class FragmentOgunler extends Fragment {
     }
 
     public void foods() {
-        mAuth = FirebaseAuth.getInstance();
-
         binding.editTextTarih.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -180,42 +185,42 @@ public class FragmentOgunler extends Fragment {
         binding.buttonYemek.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                mAuth = FirebaseAuth.getInstance();
+                FirebaseUser currentUser = mAuth.getCurrentUser();
+                if (currentUser != null) {
+                    String currentUserUid = currentUser.getUid();
 
-                mFirestore.collection("Kullanıcılar").document(mAuth.getUid()).
-                        get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot documentSnapshot = task.getResult();
-                            List<Map<String, Object>> foodlist = (List<Map<String, Object>>) documentSnapshot.get("foodList");
-                            ArrayList<Food> foodList1 = new ArrayList<>();
-                            if (foodlist != null) {
-                                for (Map<String, Object> foodData : foodlist) {
-                                    Food food = new Food((String) foodData.get("Date"), (String) foodData.get("Meal"),(String) foodData.get("Food"));
-                                    foodList1.add(food);
-                                }
-                            }
-                            foodList1.add(new Food(selectedDate, selectedMeal, selectedFood));
-                            mFirestore.collection("Kullanıcılar").document(mAuth.getUid()).
-                                    update("foodList", FieldValue.arrayUnion(new Food(selectedDate, selectedMeal, selectedFood))).
-                                    addOnCompleteListener(new OnCompleteListener<Void>() {
+                    Map<String, Object> foodData = new HashMap<>();
+                    foodData.put("Date", selectedDate);
+                    foodData.put("Meal", selectedMeal);
+                    foodData.put("Food", selectedFood);
+
+                    Map<String, Object> foodListData = new HashMap<>();
+                    foodListData.put("foodList", Arrays.asList(foodData));
+
+                    mFirestore.collection("Kullanıcılar").document(currentUserUid)
+                            .set(foodListData, SetOptions.merge())
+                            .addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    if (task.isSuccessful()) {
-                                        Toast.makeText(getActivity(), "Eklendi", Toast.LENGTH_SHORT).show();
-                                    }
+                                public void onSuccess(Void aVoid) {
+                                    Toast.makeText(getActivity(), "Eklendi", Toast.LENGTH_SHORT).show();
+                                }
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Toast.makeText(getActivity(), "Ekleme hatası: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                                 }
                             });
-                        } else {
-                            Toast.makeText(getActivity(), "Döküman bulunamadı", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
+                } else {
+                    Toast.makeText(getActivity(), "Kullanıcı bulunamadı", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
 
-    public void kcalCalculator() {
+
+    public void kcalCalculator () {
         mAuth = FirebaseAuth.getInstance();
         String userId = mAuth.getUid();
         ArrayList<Integer> kahvalti_kcal = new ArrayList<>();
@@ -225,9 +230,9 @@ public class FragmentOgunler extends Fragment {
         binding.buttonCalHesabi.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                kahvalti=0;
-                ogle=0;
-                aksam=0;
+                kahvalti = 0;
+                ogle = 0;
+                aksam = 0;
                 selectedDate = binding.editTextTarih.getText().toString();
                 mFirestore.collection("Kullanıcılar").document(userId).
                         get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -242,9 +247,9 @@ public class FragmentOgunler extends Fragment {
 
                                         for (Map<String, Object> food : foodList) {
                                             String date = (String) food.get("date");
-                                            if (date.equals(selectedDate)){
+                                            if (date.equals(selectedDate)) {
                                                 String mealName = (String) food.get("meal");
-                                                if (mealName.equals("Kahvaltı")){
+                                                if (mealName.equals("Kahvaltı")) {
                                                     String foodName = (String) food.get("food");
                                                     stringBuilder.append(foodName);
 
@@ -256,7 +261,7 @@ public class FragmentOgunler extends Fragment {
                                                     for (int i = 0; i < kahvalti_kcal.size(); i++) {
                                                         kahvalti += kahvalti_kcal.get(i);
                                                     }
-                                                } else if (mealName.equals("Öğle Yemeği")){
+                                                } else if (mealName.equals("Öğle Yemeği")) {
                                                     String foodName = (String) food.get("food");
                                                     stringBuilder.append(foodName);
 
@@ -287,19 +292,18 @@ public class FragmentOgunler extends Fragment {
                                         }
 
                                         binding.textViewCalBilgi.setText(
-                                                "Kahvaltıda yedikleriniz toplam "+kahvalti+" kaloridir.\n" +
-                                                        "Öğle yemeğinde yedikleriniz toplam "+ogle+" kaloridir. \n"+
-                                                        "Akşam yemeğinde yedikleriniz toplam "+aksam+" kaloridir.");
+                                                "Kahvaltıda yedikleriniz toplam " + kahvalti + " kaloridir.\n" +
+                                                        "Öğle yemeğinde yedikleriniz toplam " + ogle + " kaloridir. \n" +
+                                                        "Akşam yemeğinde yedikleriniz toplam " + aksam + " kaloridir.");
+                                        } else {
+                                            binding.textViewCalBilgi.setText("Hiç yemek eklenmemiş");
+                                        }
                                     } else {
-                                        binding.textViewCalBilgi.setText("Hiç yemek eklenmemiş");
+                                        Log.d(TAG, "Firebase'den veriler getirilemedi.", task.getException());
                                     }
-                                } else {
-                                    Log.d(TAG, "Firebase'den veriler getirilemedi.", task.getException());
                                 }
-                            }
-                        });
-            }
-        });
+                            });
+                }
+            });
+        }
     }
-
-}
