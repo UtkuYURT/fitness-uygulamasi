@@ -201,11 +201,32 @@ public class FragmentOgunler extends Fragment {
                                     }
                                     foodList.add(foodData);
 
-                                    Map<String, Object> foodListData = new HashMap<>();
-                                    foodListData.put("foodList", foodList);
+                                    Map<String, Object> userData = new HashMap<>();
+                                    userData.put("foodList", foodList);
 
                                     mFirestore.collection("Kullanıcılar").document(currentUserUid)
-                                            .set(foodListData, SetOptions.merge())
+                                            .set(userData, SetOptions.merge())
+                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(Void aVoid) {
+                                                    Toast.makeText(getActivity(), "Eklendi", Toast.LENGTH_SHORT).show();
+                                                }
+                                            })
+                                            .addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    Toast.makeText(getActivity(), "Ekleme hatası: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                }
+                                            });
+                                } else {
+                                    // Yeni kullanıcı belgesi oluştur
+                                    Map<String, Object> userData = new HashMap<>();
+                                    List<Map<String, Object>> foodList = new ArrayList<>();
+                                    foodList.add(foodData);
+                                    userData.put("foodList", foodList);
+
+                                    mFirestore.collection("Kullanıcılar").document(currentUserUid)
+                                            .set(userData)
                                             .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                 @Override
                                                 public void onSuccess(Void aVoid) {
@@ -229,7 +250,6 @@ public class FragmentOgunler extends Fragment {
         });
     }
 
-
     public void kcalCalculator() {
         mAuth = FirebaseAuth.getInstance();
         String userId = mAuth.getUid();
@@ -250,55 +270,61 @@ public class FragmentOgunler extends Fragment {
                             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                                 if (task.isSuccessful()) {
                                     DocumentSnapshot documentSnapshot = task.getResult();
-                                    List<Map<String, Object>> foodList = (List<Map<String, Object>>) documentSnapshot.get("foodList");
+                                    if (documentSnapshot.exists()) {
+                                        List<Map<String, Object>> foodList = (List<Map<String, Object>>) documentSnapshot.get("foodList");
 
-                                    if (foodList != null) {
-                                        StringBuilder stringBuilder = new StringBuilder();
-                                        boolean dateFound = false; // Tarih için yemek bulunma durumunu takip eden bir bayrak
+                                        if (foodList != null) {
+                                            boolean dateFound = false;
 
-                                        for (Map<String, Object> food : foodList) {
-                                            String date = (String) food.get("Date"); // 'Date' olarak güncellendi
+                                            kahvalti_kcal.clear();
+                                            ogle_kcal.clear();
+                                            aksam_kcal.clear();
 
-                                            if (date != null && date.equals(selectedDate)) {
-                                                dateFound = true; // Tarih için yemek bulundu
-                                                String mealName = (String) food.get("Meal");
-                                                String foodName = (String) food.get("Food");
-                                                stringBuilder.append(foodName);
+                                            for (Map<String, Object> food : foodList) {
+                                                String date = (String) food.get("Date");
 
-                                                String[] foodArray = foodName.split(", ");
-                                                String numericValue = foodArray[1];
-                                                int cal = Integer.parseInt(numericValue);
+                                                if (date != null && date.equals(selectedDate)) {
+                                                    dateFound = true;
+                                                    String mealName = (String) food.get("Meal");
+                                                    String foodName = (String) food.get("Food");
 
-                                                if (mealName.equals("Kahvaltı")) {
-                                                    kahvalti_kcal.add(cal);
-                                                } else if (mealName.equals("Öğle Yemeği")) {
-                                                    ogle_kcal.add(cal);
-                                                } else if (mealName.equals("Akşam Yemeği")) {
-                                                    aksam_kcal.add(cal);
+                                                    String[] foodArray = foodName.split(", ");
+                                                    String numericValue = foodArray[1];
+                                                    int cal = Integer.parseInt(numericValue);
+
+                                                    if (mealName.equals("Kahvaltı")) {
+                                                        kahvalti_kcal.add(cal);
+                                                    } else if (mealName.equals("Öğle Yemeği")) {
+                                                        ogle_kcal.add(cal);
+                                                    } else if (mealName.equals("Akşam Yemeği")) {
+                                                        aksam_kcal.add(cal);
+                                                    }
                                                 }
                                             }
-                                        }
 
-                                        if (dateFound) {
-                                            for (int kcal : kahvalti_kcal) {
-                                                kahvalti += kcal;
-                                            }
-                                            for (int kcal : ogle_kcal) {
-                                                ogle += kcal;
-                                            }
-                                            for (int kcal : aksam_kcal) {
-                                                aksam += kcal;
-                                            }
+                                            if (dateFound) {
+                                                for (int kcal : kahvalti_kcal) {
+                                                    kahvalti += kcal;
+                                                }
+                                                for (int kcal : ogle_kcal) {
+                                                    ogle += kcal;
+                                                }
+                                                for (int kcal : aksam_kcal) {
+                                                    aksam += kcal;
+                                                }
 
-                                            binding.textViewCalBilgi.setText(
-                                                    "Kahvaltıda yedikleriniz toplam " + kahvalti + " kaloridir.\n" +
-                                                            "Öğle yemeğinde yedikleriniz toplam " + ogle + " kaloridir. \n" +
-                                                            "Akşam yemeğinde yedikleriniz toplam " + aksam + " kaloridir.");
+                                                binding.textViewCalBilgi.setText(
+                                                        "Kahvaltıda yedikleriniz toplam " + kahvalti + " kaloridir.\n" +
+                                                                "Öğle yemeğinde yedikleriniz toplam " + ogle + " kaloridir. \n" +
+                                                                "Akşam yemeğinde yedikleriniz toplam " + aksam + " kaloridir.");
+                                            } else {
+                                                binding.textViewCalBilgi.setText("Seçtiğiniz tarih için yemek bilgisi yok.");
+                                            }
                                         } else {
-                                            binding.textViewCalBilgi.setText("Seçtiğiniz tarih için yemek bilgisi yok.");
+                                            binding.textViewCalBilgi.setText("Hiç yemek eklenmemiş");
                                         }
                                     } else {
-                                        binding.textViewCalBilgi.setText("Hiç yemek eklenmemiş");
+                                        binding.textViewCalBilgi.setText("Kullanıcıya ait veri bulunamadı");
                                     }
                                 } else {
                                     Log.d(TAG, "Firebase'den veriler getirilemedi.", task.getException());
@@ -308,4 +334,6 @@ public class FragmentOgunler extends Fragment {
             }
         });
     }
+
+
 }
